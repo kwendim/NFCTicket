@@ -4,9 +4,7 @@
 
 1. Clone the project repository
 2. Create a __private__ repository for your group
-3. Add all group members, as well as the following users (as reporters):
-    * Tuomas Aura (@aura)
-    * Aleksi Peltonen (@peltona4)
+3. Add all group members, as well as the __group__ CS-E4300 as a reporter
 4. Replace this document with your project report. The structure of the report is provided below.
 
 
@@ -19,12 +17,12 @@ _Alice, Bob (list names of the group members here)_
 
 ## Overview
 
-Brief summary of your ticket design, user experience, and intended security properties. 
+Brief summary of your ticket design, user experience, and intended security properties.
 
 
-## Ticket application structure 
+## Ticket application structure
 
-The Ultralight memory is organised as [below](https://www.nxp.com/docs/en/data-sheet/MF0ICU2_SDS.pdf). Update the table below to reflect the data structure of your card application. 
+The Ultralight memory is organised as [below](https://www.nxp.com/docs/en/data-sheet/MF0ICU2_SDS.pdf). Update the table below to reflect the data structure of your card application.
 
 <table>
   <tr>
@@ -148,7 +146,7 @@ Brief overview of the implementation: where is your code and what does it do?
 
 ### Security evaluation
 
-What kind of security is achieved and any known weakesses. 
+What kind of security is achieved and any known weakesses.
 
 ### Reliability and deployablity
 
