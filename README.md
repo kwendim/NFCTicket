@@ -15,8 +15,7 @@
 
 # Project Report: Ticket Application by Group _N_
 
-_Alice, Bob (list names of the group members here)_
-
+Kidus Mammo, Mohammad Elhariry, Sonika Ujwal
 ## Overview
 
 Brief summary of your ticket design, user experience, and intended security properties.
