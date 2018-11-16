@@ -29,156 +29,147 @@ The authentication process uses a diversified key (based on the user id) to auth
 The Ultralight memory is organised as [below](https://www.nxp.com/docs/en/data-sheet/MF0ICU2_SDS.pdf). Update the table below to reflect the data structure of your card application.
 
 <table>
-    <tr>
-      <td colspan="2"><b><center> Page address </center></b></td>
-      <td colspan="4"><b><center> Byte number </center></b></td>
-    </tr>
-    <tr>
-      <td><b><center> Decimal </center></b></td>
-      <td><b><center> Hex </center></b></td>
-      <td><b><center> 0 </center></b></td>
-      <td><b><center> 1 </center></b></td>
-      <td><b><center> 2 </center></b></td>
-      <td><b><center> 3 </center></b></td>
-    </tr>
-  
-    <tr>
-      <td> 0 </td>
-      <td> 00h </td>
-      <td colspan="4"> serial number </td>
-    </tr>
-  
-    <tr>
-      <td> 1 </td>
-      <td> 01h </td>
-      <td colspan="4"> serial number </td>
-    </tr>
-  
-    <tr>
-      <td> 2 </td>
-      <td> 02h </td>
-      <td> serial number </td>
-      <td> internal </td>
-      <td> lock bytes </td>
-      <td> lock bytes </td>
-    </tr>
+  <tr>
+    <td colspan="2"><b><center> Page address </center></b></td>
+    <td colspan="4"><b><center> Byte number </center></b></td>
+  </tr>
+  <tr>
+    <td><b><center> Decimal </center></b></td>
+    <td><b><center> Hex </center></b></td>
+    <td><b><center> 0 </center></b></td>
+    <td><b><center> 1 </center></b></td>
+    <td><b><center> 2 </center></b></td>
+    <td><b><center> 3 </center></b></td>
+  </tr>
 
-    <tr>
-        <td> 3 </td>
-        <td> 03h </td>
-        <td> OTP </td>
-        <td> OTP </td>
-        <td> OTP </td>
-        <td> OTP </td>
-      </tr>
-  
-    <tr>
-      <td> 4 </td>
-      <td> 04h </td>
-      <td> version </td>
-      <td> version </td>
-      <td> tag </td>
-      <td> tag </td>
-    </tr>
-  
-    <tr>
-      <td> 5 </td>
-      <td> 05h </td>
-      <td> Number of rides </td>
-      <td> Expiry date </td>
-      <td> Expiry date </td>
-      <td> Expiry date </td>
-    </tr>
-  
-    <tr>
-      <td> 6 </td>
-      <td> 06h </td>
-      <td> MAC </td>
-      <td> MAC </td>
-      <td> MAC </td>
-      <td> MAC </td>
-    </tr>
+  <tr>
+    <td> 0 </td>
+    <td> 00h </td>
+    <td colspan="4"> serial number </td>
+  </tr>
 
-    <tr>
-        <td> 7 </td>
-        <td> 07h </td>
-        <td> Number of rides </td>
-        <td> Expiry date </td>
-        <td> Expiry date </td>
-        <td> Expiry date </td>
-      </tr>
+  <tr>
+    <td> 1 </td>
+    <td> 01h </td>
+    <td colspan="4"> serial number </td>
+  </tr>
+
+  <tr>
+    <td> 2 </td>
+    <td> 02h </td>
+    <td> serial number </td>
+    <td> internal </td>
+    <td> lock bytes </td>
+    <td> lock bytes </td>
+  </tr>
+
+  <tr>
+    <td> 4 </td>
+    <td> 04h </td>
+    <td> version </td>
+    <td> version </td>
+    <td> tag </td>
+    <td> tag </td>
+  </tr>
+
+  <tr>
+    <td> 5 </td>
+    <td> 05h </td>
+    <td> Number of rides </td>
+    <td> Expiry date </td>
+    <td> Expiry date </td>
+    <td> Expiry date </td>
+  </tr>
+
+  <tr>
+    <td> 6 </td>
+    <td> 06h </td>
+    <td> MAC </td>
+    <td> MAC </td>
+    <td> MAC </td>
+    <td> MAC </td>
+  </tr>
+
+  <tr>
+    <td> 7 </td>
+    <td> 07h </td>
+    <td> Number of rides </td>
+    <td> Expiry date </td>
+    <td> Expiry date </td>
+    <td> Expiry date </td>
+  </tr>
     
-      <tr>
-        <td> 8 </td>
-        <td> 08h </td>
-        <td> MAC </td>
-        <td> MAC </td>
-        <td> MAC </td>
-        <td> MAC </td>
-      </tr>
-  
-    <tr>
-      <td> ... </td>
-      <td> ... </td>
-      <td> </td>
-      <td> </td>
-      <td> </td>
-      <td> </td>
-    </tr>
+  <tr>
+    <td> 8 </td>
+    <td> 08h </td>
+    <td> MAC </td>
+    <td> MAC </td>
+    <td> MAC </td>
+    <td> MAC </td>
+  </tr>
 
-    <tr>
-        <td> ... </td>
-        <td> ... </td>
-        <td> </td>
-        <td> </td>
-        <td> </td>
-        <td> </td>
-      </tr>
+  <tr>
+    <td> ... </td>
+    <td> ... </td>
+    <td> </td>
+    <td> </td>
+    <td> </td>
+    <td> </td>
+  </tr>
 
-      <tr>
-        <td> ... </td>
-        <td> ... </td>
-        <td> </td>
-        <td> </td>
-        <td> </td>
-        <td> </td>
-      </tr>
-  
-    <tr>
-      <td> 40 </td>
-      <td> 28h </td>
-      <td> lock bytes </td>
-      <td> lock bytes </td>
-      <td> - </td>
-      <td> - </td>
-    </tr>
-  
-    <tr>
-      <td> 41 </td>
-      <td> 29h </td>
-      <td> 16-bit counter </td>
-      <td> 16-bit counter </td>
-      <td> - </td>
-      <td> - </td>
-    </tr>
-  
-    <tr>
-      <td> 42 </td>
-      <td> 2Ah </td>
-      <td colspan="4"> authentication configuration </td>
-    </tr>
-  
-    <tr>
-      <td> 43 </td>
-      <td> 2Bh </td>
-  <td colspan="4"> authentication configuration </td>
-    </tr>
-  
-    <tr>
-      <td> 44 to 47 </td>
-      <td> 2Ch to 2Fh </td>
-  <td colspan="4"> authentication key </td>
-    </tr>
+  <tr>
+    <td> ... </td>
+    <td> ... </td>
+    <td> </td>
+    <td> </td>
+    <td> </td>
+    <td> </td>
+  </tr>
+
+  <tr>
+    <td> ... </td>
+    <td> ... </td>
+    <td> </td>
+    <td> </td>
+    <td> </td>
+    <td> </td>
+  </tr>
+
+  <tr>
+    <td> 40 </td>
+    <td> 28h </td>
+    <td> lock bytes </td>
+    <td> lock bytes </td>
+    <td> - </td>
+    <td> - </td>
+  </tr>
+
+  <tr>
+    <td> 41 </td>
+    <td> 29h </td>
+    <td> 16-bit counter </td>
+    <td> 16-bit counter </td>
+    <td> - </td>
+    <td> - </td>
+  </tr>
+
+  <tr>
+    <td> 42 </td>
+    <td> 2Ah </td>
+    <td colspan="4"> authentication configuration </td>
+  </tr>
+
+  <tr>
+    <td> 43 </td>
+    <td> 2Bh </td>
+<td colspan="4"> authentication configuration </td>
+  </tr>
+
+  <tr>
+    <td> 44 to 47 </td>
+    <td> 2Ch to 2Fh </td>
+<td colspan="4"> authentication key </td>
+  </tr>
 </table>
 
 Describe here the contents of each data field if it is not obvious from the diagram.
