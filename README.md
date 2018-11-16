@@ -22,7 +22,7 @@ The ticket is designed to address the main security issues with the Ultralight-C
 
 The user can buy tickets and use them or give them as a gift. The expiry date is set on first use (validation) to be the next midnight. The tickets are sold in fives and the maximum number of available rides a user can have on the card is limited to 150 (a reasonable  number of merry go round rides). The user can also top-up their card with more rides.
 
-The authentication process uses a diversified key (based on the user id) to authenticate each card separately so if the key of one card is compromised it does not affect the whole system. Another key is used for the HMAC process, saved only on the reader; which protects against Mitm attacks. The system also provides tearing protection by utilizing multiple memory page usage for read/write operations. We implement roll-back protection using the counter.
+The authentication process uses a diversified key (based on the user id) to authenticate each card separately so if the key of one card is compromised it does not affect the whole system. Another key is used for the HMAC process which is saved only on the reader. The system also provides tearing protection by utilizing multiple memory page usage for read/write operations. We implement roll-back protection using the counter.
 
 ## Ticket application structure
 
@@ -172,26 +172,46 @@ The Ultralight memory is organised as [below](https://www.nxp.com/docs/en/data-s
   </tr>
 </table>
 
-Describe here the contents of each data field if it is not obvious from the diagram.
+The validation algorithm needs the data to be duplicated (two pages each) to solve the tearing issue, hence the repition of pages 5 and 6 on pages 7 and 8. This wil be explained thoroughly in the implementation section below.
 
 ## Key management
 
-Overview of key management on both cards and readers.
+The authentication key is stored on the reader using the Android [keystore](https://developer.android.com/training/articles/keystore) system. The reader sets the key of the card at issue time. The key is formed of a generated key and the UID of the NFC card.
+
+The HMAC key is stored only on the reader using the same method as the authentication key and the same format (a different generated key and the UID of the NFC card).
 
 ## Implementation
 
-Brief overview of the implementation: where is your code and what does it do?
+The implementation is formed of two main operations: issuing new tickets/rides and validation.
 
 ## Evaluation
 
 ### Security evaluation
 
-What kind of security is achieved and any known weakesses.
+The system protects against the following issues:
+
+1. Mitm attacks: By using an HMAC for the ticket (number of rides, expiry date), the system is protected against an attacker who tries to modify the ticket details. The attacker will not be able to increment ride counts or rollback the date on expired tickets. 
+
+2. Rollback prevention: The system uses an irreversible counter whose data is also included in the HMAC. If a rollback attack is performed, the HMAC will be different; hence no authentication will be performed.
+
+3. Remaining replay vulnerability: This attack will be made more difficult by setting the AUTH1 parameter to 0.
+
+Known weaknesses:
+
+1. Passback: Users of the card can use the same card by passing it back for another round of ticket purchase. It is possible to deal with this issue by adding a timestamp in a different page, and making sure a ticket can not be used again within a certain time frame(Let's say 10 minutes). Though this will increase our security feature, it will require us to do more read and writes which might increase a user's ticket validation time.
+
+2. Although the system has the AUTH 1 parameter configured to prevent read/write acccess without authentication, there is still the remaining replay vulnerability which we can not deal with without session integrity.
+
+3. The diversified key uses the UID of the NFC card as a part of it. If an attacker were to find out this format, it would reduce the entropy of they key (The UID could be read from the card using any NFC reader).
 
 ### Reliability and deployablity
 
-How reliability and deployability were considered in the ticket design.
+The following aspects are taken into consideration:
+
+1. Tearing protection: Utilizing multiple memory pages for read/write operations protects against tearing. According to the implementation, the validation process checks the counter value; if the number is even the reader will read from pages 5 and 6 and write to pages 7 and 8 (and vice versa if the number is odd). The last step is to update the counter so in case the user removes the card faster than the write process, the counter will not be updated and hence the data will not be corrupted and no tickets are wrongly issued. 
+
+2. Version upgrade: The multiple pages implementation of the data structure allows us to have a tearing proof method to implement more features in the long run. Version updates can be made much more smoothly.
 
 ## Final notes
 
-Give here feedback to the teachers, such as open questions that you could not solve and what was difficult.
+The decision of using Android [keystore](https://developer.android.com/training/articles/keystore) system is not final as we have not yet tested this functionality before.It might be altered later on during the implementation if we find a better alternative. In addition, based on the time we have, we will try to implement other features that enhance security or improve user experience when diving deeper into the implementation. The documentation will be updated accordingly. 
