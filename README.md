@@ -13,7 +13,7 @@
 ***
 
 
-# Project Report: Ticket Application by Group _N_
+# Project Report: Ticket Application by Group 25
 
 Kidus Mammo, Mohammad Elhariry, Sonika Ujwal
 ## Overview
@@ -61,14 +61,61 @@ The Ultralight memory is organised as [below](https://www.nxp.com/docs/en/data-s
   </tr>
 
   <tr>
-    <td> 4 </td>
-    <td> 04h </td>
-    <td> user memory </td>
-    <td> user memory </td>
-    <td> user memory </td>
-    <td> user memory </td>
+    <td> 3 </td>
+    <td> 03h </td>
+    <td> OTP </td>
+    <td> OTP </td>
+    <td> OTP </td>
+    <td> OTP </td>
   </tr>
 
+
+<tr>
+  <td> 4 </td>
+  <td> 04h </td>
+  <td> version </td>
+  <td> version </td>
+  <td> tag </td>
+  <td> tag </td>
+</tr>
+
+<tr>
+  <td> 5 </td>
+  <td> 05h </td>
+  <td> Number of rides </td>
+  <td> Expiry date </td>
+  <td> Expiry date </td>
+  <td> Expiry date </td>
+</tr>
+
+<tr>
+  <td> 6 </td>
+  <td> 06h </td>
+  <td> MAC </td>
+  <td> MAC </td>
+  <td> MAC </td>
+  <td> MAC </td>
+</tr>
+
+<tr>
+    <td> 7 </td>
+    <td> 07h </td>
+    <td> Number of rides </td>
+    <td> Expiry date </td>
+    <td> Expiry date </td>
+    <td> Expiry date </td>
+  </tr>
+
+  <tr>
+    <td> 8 </td>
+    <td> 08h </td>
+    <td> MAC </td>
+    <td> MAC </td>
+    <td> MAC </td>
+    <td> MAC </td>
+  </tr>
+
+  
   <tr>
     <td> ... </td>
     <td> ... </td>

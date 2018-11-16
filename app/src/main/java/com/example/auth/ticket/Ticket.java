@@ -1,5 +1,7 @@
 package com.example.auth.ticket;
 
+import android.util.Log;
+
 import com.example.auth.app.ulctools.Commands;
 import com.example.auth.app.ulctools.Utilities;
 
@@ -77,16 +79,36 @@ public class Ticket {
             return false;
         }
 
-        // Example of writing:
-        byte[] message = "info".getBytes();
-        res = utils.writePages(message, 0, 6, 1);
+        byte[] UID = new byte[192];
+        boolean uid_read = utils.readPages(0,44,UID,0);
 
-        // Set information to show for the user
-        if (res) {
-            infoToShow = "Wrote: " + new String(message);
-        } else {
-            infoToShow = "Failed to write";
+        if(uid_read){
+            Log.i("UID", new String(UID));
+            infoToShow = new String(UID);
         }
+
+        byte[] counter = utils.readMemory();
+        boolean counter_read = utils.readPages(44,4,counter,0);
+
+        if(counter_read){
+            infoToShow = new String(counter);
+        }
+        else{
+            Log.i("counter", new String(counter));
+        }
+
+
+
+        // Example of writing:
+//        byte[] message = "info".getBytes();
+//        res = utils.writePages(message, 0, 6, 1);
+//
+//        // Set information to show for the user
+//        if (res) {
+//            infoToShow = "Wrote: " + new String(message);
+//        } else {
+//            infoToShow = "Failed to write";
+//        }
 
         return true;
     }
