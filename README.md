@@ -26,7 +26,7 @@ The authentication process uses a diversified key (based on the user id) to auth
 
 ## Ticket application structure
 
-The Ultralight memory is organised as [below](https://www.nxp.com/docs/en/data-sheet/MF0ICU2_SDS.pdf). Update the table below to reflect the data structure of your card application.
+The Ultralight memory is organised as [below](https://www.nxp.com/docs/en/data-sheet/MF0ICU2_SDS.pdf)
 
 <table>
   <tr>
