@@ -197,11 +197,12 @@ The implementation is done in the Ticket.java file, formed of two main operation
 
 ### Issuing
 
-The system will start by reading the value of the counter memory then it will generate a new ticket whose data is formed of the number of tickets and the expiry date (but expiry date will be set during validation). The HMAC of the ticket and the counter memory value will be generated as well. The system then check if the counter value is even, then it writes to memory pages 5 and 6 or to memory pages 7 and 8 if the counter value is odd.
+The system will start by reading the value of the counter memory. It will then generate a new ticket whose data is formed of the five tickets to be issued and the expiry date (epiry date will be set during validation). The HMAC of the ticket and the counter memory value will be generated as well. The system then check if the counter value is even, then it writes to memory pages 5 and 6 or to memory pages 7 and 8 if the counter value is odd. 
+
 
 ### Validation
 
-The system will start also by reading the value of the counter memory, if the value is even then it will read from memory pages 5 and 6 and write to memory pages 7 and 8 (and vice versa if the value is odd). The system will then read the ticket value, recalculate the MAC of the ticket and the counter memory value to ensure it matches the MAC saved on the card during issuing. If the HMAC is correct and the number or rides is greater than  zero the system will add the expiry date (if it is not already written), decrement the number of rides, recalculate the HMAC for the ticket number, counter + 1 and the expiry date and the write the new data to the specified memory pages. The last step will be incrementing the counter and writing it to the counter memory.
+The system will start  by reading the value of the counter memory, if the value is even then it will read from memory pages 5 and 6 and write to memory pages 7 and 8 (and vice versa if the value is odd). The system will then read the ticket value, recalculate the MAC of the ticket and the counter memory value to ensure it matches the MAC saved on the card during issuing. If the HMAC is correct and the number of rides is greater than  zero, the system will add the expiry date (if it is not already written), decrement the number of rides, increse the value of the counter in the ticket and recalculates the HMAC. It writes the new data in the appropriate memory page. The last step will be incrementing the counter and writing it to the counter memory.
 
 ## Evaluation
 
