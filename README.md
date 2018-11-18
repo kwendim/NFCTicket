@@ -26,7 +26,7 @@ The authentication process uses a diversified key (based on the user id) to auth
 
 ## Ticket application structure
 
-The Ultralight memory is organised as [below](https://www.nxp.com/docs/en/data-sheet/MF0ICU2_SDS.pdf).
+The Ultralight memory is organised as [below](https://www.nxp.com/docs/en/data-sheet/MF0ICU2_SDS.pdf). Update the table below to reflect the data structure of your card application.
 
 <table>
   <tr>
@@ -64,58 +64,13 @@ The Ultralight memory is organised as [below](https://www.nxp.com/docs/en/data-s
   </tr>
 
   <tr>
-<<<<<<< HEAD
     <td> 3 </td>
     <td> 03h </td>
     <td> OTP </td>
     <td> OTP </td>
     <td> OTP </td>
     <td> OTP </td>
-=======
-    <td> 4 </td>
-    <td> 04h </td>
-    <td> version </td>
-    <td> version </td>
-    <td> tag </td>
-    <td> tag </td>
-  </tr>
 
-  <tr>
-    <td> 5 </td>
-    <td> 05h </td>
-    <td> Number of rides </td>
-    <td> Expiry date </td>
-    <td> Expiry date </td>
-    <td> Expiry date </td>
-  </tr>
-
-  <tr>
-    <td> 6 </td>
-    <td> 06h </td>
-    <td> MAC </td>
-    <td> MAC </td>
-    <td> MAC </td>
-    <td> MAC </td>
-  </tr>
-
-  <tr>
-    <td> 7 </td>
-    <td> 07h </td>
-    <td> Number of rides </td>
-    <td> Expiry date </td>
-    <td> Expiry date </td>
-    <td> Expiry date </td>
-  </tr>
-    
-  <tr>
-    <td> 8 </td>
-    <td> 08h </td>
-    <td> MAC </td>
-    <td> MAC </td>
-    <td> MAC </td>
-    <td> MAC </td>
->>>>>>> 72d72cb60e6fec0080a7ec094eca1f1ecaf6c5c6
-  </tr>
 
 
 <tr>
