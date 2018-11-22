@@ -132,7 +132,7 @@ public class Ticket {
         byte[] ticketHmac = macAlgorithm.generateMac(dataToMac);
 
 
-        ByteBuffer wrapped = ByteBuffer.wrap(counterMem); // big-endian by default
+        ByteBuffer wrapped = ByteBuffer.wrap(counterMem);
         int counterVal = wrapped.getShort();
         byte[] dataToWrite = utils.concatArrays(ticket,ticketHmac);
 
@@ -153,7 +153,6 @@ public class Ticket {
         if (Arrays.equals(Arrays.copyOfRange(dataToWrite,0,8), ticketToCheck))*/
 
         infoToShow = "Ticket issued successfully! You now have five rides";
-        remainingUses = 5;
         return true;
     }
 
@@ -164,7 +163,6 @@ public class Ticket {
      */
     public boolean use() throws GeneralSecurityException {
         boolean res;
-
         // Authenticate
         res = utils.authenticate(authenticationKey);
         if (!res) {
@@ -173,16 +171,35 @@ public class Ticket {
             return false;
         }
 
+
+        byte[] uid = new byte[12];
+        boolean uidRead = utils.readPages(0,3, uid,0);
+        byte[] hmacDiversifiedKey = generateDiversifiedKey(uid, false);
         // Example of reading:
-        byte[] ticket = new byte[4];
-        res = utils.readPages(5, 1, ticket, 0);
 
-        // Set information to show for the user
-        if (!res) {
-            Utilities.log("Read  ticket in use()", true);
-            infoToShow = "Failed to read";
+        byte[] counterPage = new byte[4];
+        boolean counterRead = utils.readPages(41,1,counterPage,0);
+        byte[] counterMem = Arrays.copyOfRange(counterPage, 0, 2);
+        ByteBuffer wrapped = ByteBuffer.wrap(counterMem);
+        int counterVal = wrapped.getShort();
+
+        byte[] ticketInfo = new byte[8];
+        if (counterVal % 2 == 0)
+            res = utils.readPages(5, 2, ticketInfo, 0);
+        else
+            res = utils.readPages(7, 2, ticketInfo, 0);
+
+
+
+        byte[] dataToMac = utils.concatArrays(Arrays.copyOfRange(ticketInfo,0, 4), counterMem);
+
+        macAlgorithm.setKey(hmacDiversifiedKey);
+        byte[] ticketHmac = macAlgorithm.generateMac(dataToMac);
+        if (!Arrays.equals(Arrays.copyOfRange(ticketHmac, 0, 4), Arrays.copyOfRange(ticketInfo, 4, 8))) {
+            infoToShow = "Invalid ticket";
+            return false;
         }
-
+        infoToShow = "Valid HMAC!";
         return true;
     }
 }
