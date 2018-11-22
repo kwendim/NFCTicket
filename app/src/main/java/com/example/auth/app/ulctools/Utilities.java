@@ -107,4 +107,22 @@ public class Utilities {
         else
             Log.i("Debug", message);
     }
+
+    public String byteArrayToHexString(byte[] array) {
+        StringBuffer hexString = new StringBuffer();
+        for (byte b : array) {
+            int intVal = b & 0xff;
+            if (intVal < 0x10)
+                hexString.append("0");
+            hexString.append(Integer.toHexString(intVal));
+        }
+        return hexString.toString();
+    }
+
+    public byte[] concatArrays(byte[] a1, byte[] a2) {
+        byte[] res = new byte[a1.length + a2.length];
+        System.arraycopy(a1, 0, res, 0, a1.length);
+        System.arraycopy(a2, 0, res, a1.length, a2.length);
+        return res;
+    }
 }
