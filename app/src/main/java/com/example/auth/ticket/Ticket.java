@@ -1,6 +1,5 @@
 package com.example.auth.ticket;
 
-import android.util.Log;
 
 import com.example.auth.app.ulctools.Commands;
 import com.example.auth.app.ulctools.Utilities;
@@ -11,7 +10,6 @@ import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
 
 
@@ -242,9 +240,32 @@ public class Ticket {
             }
         }
 
-        ticketInfo[0] = (byte)--currentNumOfRides;
-        infoToShow = "Number of rides is " + Integer.toString(currentNumOfRides);
+        ticket[0] = (byte)--currentNumOfRides;
 
+        for (int i = 0; i < expiryDate.length; ++i) {
+            ticket[i + 1] = expiryDate[i];
+        }
+
+        dataToMac = utils.concatArrays(ticket, counterMem);
+        macAlgorithm.setKey(hmacDiversifiedKey);
+        ticketHmac = macAlgorithm.generateMac(dataToMac);
+
+        byte[] dataToWrite = utils.concatArrays(ticket,ticketHmac);
+
+        if (counterVal % 2 == 0) {
+            res = utils.writePages(dataToWrite, 0, 5, 2);
+        }
+        else {
+            res = utils.writePages(dataToWrite, 0, 7, 2);
+        }
+
+        if (!res) {
+            Utilities.log("Ticket write failed in validate()", true);
+            infoToShow = "Ticket write failed";
+            return false;
+        }
+
+        infoToShow = "Ticket valid! You now have " + Integer.toString(currentNumOfRides) + " rides left";
         return true;
     }
 }
