@@ -10,6 +10,9 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 
 
 /**
@@ -85,6 +88,21 @@ public class Ticket {
         catch(IOException ex) {
             return null;
         }
+    }
+
+    private byte[] generateDate(Calendar date) {
+        // reset hour, minutes, seconds and millis
+        date.set(Calendar.HOUR_OF_DAY, 0);
+        date.set(Calendar.MINUTE, 0);
+        date.set(Calendar.SECOND, 0);
+        date.set(Calendar.MILLISECOND, 0);
+
+        // next day
+        date.add(Calendar.DAY_OF_MONTH, 1);
+        byte[] dateArray = {(byte)(date.get(Calendar.YEAR) - 2000),(byte)date.get(Calendar.MONTH)
+                ,(byte)date.get(Calendar.DAY_OF_MONTH)};
+
+        return dateArray;
     }
 
     /**
@@ -190,8 +208,8 @@ public class Ticket {
             res = utils.readPages(7, 2, ticketInfo, 0);
 
 
-
-        byte[] dataToMac = utils.concatArrays(Arrays.copyOfRange(ticketInfo,0, 4), counterMem);
+        byte[] ticket = Arrays.copyOfRange(ticketInfo,0, 4);
+        byte[] dataToMac = utils.concatArrays(ticket, counterMem);
 
         macAlgorithm.setKey(hmacDiversifiedKey);
         byte[] ticketHmac = macAlgorithm.generateMac(dataToMac);
@@ -199,7 +217,34 @@ public class Ticket {
             infoToShow = "Invalid ticket";
             return false;
         }
-        infoToShow = "Valid HMAC!";
+
+        int currentNumOfRides = ticketInfo[0];
+        if (currentNumOfRides == 0) {
+            infoToShow = "No rides available, please purchase new ones";
+            return false;
+        }
+
+        byte[] expiryDate = Arrays.copyOfRange(ticketInfo, 1, 4);
+        wrapped = ByteBuffer.wrap(expiryDate);
+        int currentExpiryDate = wrapped.getShort();
+        Calendar dateNow = new GregorianCalendar();
+
+        if (currentExpiryDate == 0) {
+            expiryDate = generateDate(dateNow);
+        }
+        else {
+            Calendar savedDate = new GregorianCalendar();
+            savedDate.set(expiryDate[0] + 2000, expiryDate[1], expiryDate[2], 0, 0);
+
+            if (dateNow.compareTo(savedDate) == 1) {
+                infoToShow = "Ticket has expired, please purchase w new ticket";
+                return false;
+            }
+        }
+
+        ticketInfo[0] = (byte)--currentNumOfRides;
+        infoToShow = "Number of rides is " + Integer.toString(currentNumOfRides);
+
         return true;
     }
 }
