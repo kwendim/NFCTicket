@@ -139,6 +139,12 @@ public class Ticket {
         }
     }
 
+    private boolean writeAuthValues() {
+        byte[] authValues = new byte[8];
+        authValues[0] = 0x03;
+        return utils.writePages(authValues, 0, 42, 2);
+    }
+
     /**
      * Issue new tickets
      *
@@ -146,7 +152,7 @@ public class Ticket {
      */
     public boolean issue(int daysValid, int uses) throws GeneralSecurityException {
         boolean res;
-
+        writeAuthValues();
         byte[] uid = new byte[12];
         boolean uidRead = utils.readPages(0,3, uid,0);
 
