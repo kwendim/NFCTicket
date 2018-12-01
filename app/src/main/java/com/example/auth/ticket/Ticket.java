@@ -142,14 +142,18 @@ public class Ticket {
         }
 
         byte[] counterMem = Arrays.copyOfRange(counterPage, 0, 2);
-        byte[] dataToMac = utils.concatArrays(ticket, counterMem);
+        byte[] counterFlipped = {counterMem[1], counterMem[0]};
+        ByteBuffer wrapped = ByteBuffer.wrap(counterMem);
+        int counterVal = wrapped.getShort();
+        ++counterFlipped[1];
 
+
+        byte[] dataToMac = utils.concatArrays(ticket, counterFlipped);
         macAlgorithm.setKey(hmacDiversifiedKey);
         byte[] ticketHmac = macAlgorithm.generateMac(dataToMac);
 
 
-        ByteBuffer wrapped = ByteBuffer.wrap(counterMem);
-        int counterVal = wrapped.getShort();
+
         byte[] dataToWrite = utils.concatArrays(ticket,ticketHmac);
 
         if (counterVal % 2 == 0) {
@@ -164,11 +168,9 @@ public class Ticket {
             infoToShow = "Ticket write failed";
             return false;
         }
-        /*byte[] ticketToCheck = new byte[8];
-        utils.readPages(5, 2, ticketToCheck, 0);
-        if (Arrays.equals(Arrays.copyOfRange(dataToWrite,0,8), ticketToCheck))*/
-
-        infoToShow = "Ticket issued successfully! You now have five rides";
+        byte[] incCounter = {0x01, 0, 0, 0};
+        utils.writePages(incCounter, 0, 41, 1);
+        infoToShow = "Ticket issued successfully! You now have five more rides";
         return true;
     }
 
@@ -196,18 +198,20 @@ public class Ticket {
         byte[] counterPage = new byte[4];
         boolean counterRead = utils.readPages(41,1,counterPage,0);
         byte[] counterMem = Arrays.copyOfRange(counterPage, 0, 2);
-        ByteBuffer wrapped = ByteBuffer.wrap(counterMem);
+        byte[] counterFlipped = {counterMem[1], counterMem[0]};
+        ByteBuffer wrapped = ByteBuffer.wrap(counterFlipped);
         int counterVal = wrapped.getShort();
+
 
         byte[] ticketInfo = new byte[8];
         if (counterVal % 2 == 0)
-            res = utils.readPages(5, 2, ticketInfo, 0);
-        else
             res = utils.readPages(7, 2, ticketInfo, 0);
+        else
+            res = utils.readPages(5, 2, ticketInfo, 0);
 
 
         byte[] ticket = Arrays.copyOfRange(ticketInfo,0, 4);
-        byte[] dataToMac = utils.concatArrays(ticket, counterMem);
+        byte[] dataToMac = utils.concatArrays(ticket, counterFlipped);
 
         macAlgorithm.setKey(hmacDiversifiedKey);
         byte[] ticketHmac = macAlgorithm.generateMac(dataToMac);
@@ -235,7 +239,7 @@ public class Ticket {
             savedDate.set(expiryDate[0] + 2000, expiryDate[1], expiryDate[2], 0, 0);
 
             if (dateNow.compareTo(savedDate) == 1) {
-                infoToShow = "Ticket has expired, please purchase w new ticket";
+                infoToShow = "Ticket has expired, please purchase a new ticket";
                 return false;
             }
         }
@@ -246,7 +250,8 @@ public class Ticket {
             ticket[i + 1] = expiryDate[i];
         }
 
-        dataToMac = utils.concatArrays(ticket, counterMem);
+        ++counterFlipped[1];
+        dataToMac = utils.concatArrays(ticket, counterFlipped);
         macAlgorithm.setKey(hmacDiversifiedKey);
         ticketHmac = macAlgorithm.generateMac(dataToMac);
 
@@ -265,7 +270,9 @@ public class Ticket {
             return false;
         }
 
-        infoToShow = "Ticket valid! You now have " + Integer.toString(currentNumOfRides) + " rides left";
+        byte[] incCounter = {0x01, 0, 0, 0};
+        utils.writePages(incCounter, 0, 41, 1);
+        infoToShow = "Ticket valid! You now have " + Integer.toString(currentNumOfRides) + " ride(s) left";
         return true;
     }
 }
