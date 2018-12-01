@@ -103,6 +103,42 @@ public class Ticket {
         return dateArray;
     }
 
+    private byte[] generateNewTicket(int counterVal) {
+        byte[] freshTicket = {0x05, 0x00, 0x00, 0x00};
+        byte[] ticketInfo = new byte[8];
+        if (counterVal % 2 == 0)
+            utils.readPages(7, 2, ticketInfo, 0);
+        else
+            utils.readPages(5, 2, ticketInfo, 0);
+
+        int currentNumOfRides = ticketInfo[0];
+        byte[] expiryDate = Arrays.copyOfRange(ticketInfo, 1, 4);
+        ByteBuffer wrapped = ByteBuffer.wrap(expiryDate);
+        int currentExpiryDate = wrapped.getShort();
+
+        if (currentNumOfRides == 0)
+            return freshTicket;
+
+        else if (currentExpiryDate == 0) {
+            freshTicket[0] = (byte)(ticketInfo[0] + 5);
+            return freshTicket;
+        }
+        else {
+            Calendar dateNow = new GregorianCalendar();
+            Calendar savedDate = new GregorianCalendar();
+            savedDate.set(expiryDate[0] + 2000, expiryDate[1], expiryDate[2], 0, 0);
+
+            if (dateNow.compareTo(savedDate) > 0) {
+                return freshTicket;
+            }
+            else {
+                freshTicket[0] = (byte)(ticketInfo[0] + 5);
+                System.arraycopy(ticketInfo, 1, freshTicket, 1, 3);
+                return freshTicket;
+            }
+        }
+    }
+
     /**
      * Issue new tickets
      *
@@ -110,7 +146,7 @@ public class Ticket {
      */
     public boolean issue(int daysValid, int uses) throws GeneralSecurityException {
         boolean res;
-        byte[] ticket = {0x05, 0x00, 0x00, 0x00};
+
         byte[] uid = new byte[12];
         boolean uidRead = utils.readPages(0,3, uid,0);
 
@@ -143,11 +179,11 @@ public class Ticket {
 
         byte[] counterMem = Arrays.copyOfRange(counterPage, 0, 2);
         byte[] counterFlipped = {counterMem[1], counterMem[0]};
-        ByteBuffer wrapped = ByteBuffer.wrap(counterMem);
+        ByteBuffer wrapped = ByteBuffer.wrap(counterFlipped);
         int counterVal = wrapped.getShort();
         ++counterFlipped[1];
 
-
+        byte[] ticket = generateNewTicket(counterVal);
         byte[] dataToMac = utils.concatArrays(ticket, counterFlipped);
         macAlgorithm.setKey(hmacDiversifiedKey);
         byte[] ticketHmac = macAlgorithm.generateMac(dataToMac);
@@ -155,7 +191,6 @@ public class Ticket {
 
 
         byte[] dataToWrite = utils.concatArrays(ticket,ticketHmac);
-
         if (counterVal % 2 == 0) {
             res = utils.writePages(dataToWrite, 0, 5, 2);
         }
@@ -170,7 +205,7 @@ public class Ticket {
         }
         byte[] incCounter = {0x01, 0, 0, 0};
         utils.writePages(incCounter, 0, 41, 1);
-        infoToShow = "Ticket issued successfully! You now have five more rides";
+        infoToShow = "Ticket issued successfully! You now have " + ticket[0] + " rides";
         return true;
     }
 
@@ -238,7 +273,7 @@ public class Ticket {
             Calendar savedDate = new GregorianCalendar();
             savedDate.set(expiryDate[0] + 2000, expiryDate[1], expiryDate[2], 0, 0);
 
-            if (dateNow.compareTo(savedDate) == 1) {
+            if (dateNow.compareTo(savedDate) > 0) {
                 infoToShow = "Ticket has expired, please purchase a new ticket";
                 return false;
             }
