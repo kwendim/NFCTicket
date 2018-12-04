@@ -8,9 +8,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.Locale;
 
 
 /**
@@ -139,12 +142,16 @@ public class Ticket {
         }
     }
 
-    private boolean writeAuthValues() {
+    private void writeAuthValues() {
         byte[] authValues = new byte[8];
-        authValues[0] = 0x03;
-        return utils.writePages(authValues, 0, 42, 2);
+        authValues[0] = 0x05;
+        utils.writePages(authValues, 0, 42, 2);
     }
 
+    private String getDate(Calendar cal) {
+        DateFormat fmt = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
+        return fmt.format(cal.getTime());
+    }
     /**
      * Issue new tickets
      *
@@ -152,7 +159,6 @@ public class Ticket {
      */
     public boolean issue(int daysValid, int uses) throws GeneralSecurityException {
         boolean res;
-        writeAuthValues();
         byte[] uid = new byte[12];
         boolean uidRead = utils.readPages(0,3, uid,0);
 
@@ -165,7 +171,6 @@ public class Ticket {
             infoToShow = "Reading uid failed";
             return false;
         }
-
         // Authenticate
         res = utils.authenticate(authenticationKey);
         if (!res) {
@@ -173,6 +178,7 @@ public class Ticket {
             infoToShow = "Authentication failed";
             return false;
         }
+        writeAuthValues();
 
         byte[] counterPage = new byte[4];
         boolean counterRead = utils.readPages(41,1,counterPage,0);
@@ -210,7 +216,11 @@ public class Ticket {
             return false;
         }
         byte[] incCounter = {0x01, 0, 0, 0};
-        utils.writePages(incCounter, 0, 41, 1);
+        res = utils.writePages(incCounter, 0, 41, 1);
+        if (!res) {
+            infoToShow = "You removed the card too fast, please re-tap your card.";
+            return false;
+        }
         infoToShow = "Ticket issued successfully! You now have " + ticket[0] + " rides";
         return true;
     }
@@ -237,7 +247,7 @@ public class Ticket {
         // Example of reading:
 
         byte[] counterPage = new byte[4];
-        boolean counterRead = utils.readPages(41,1,counterPage,0);
+        utils.readPages(41,1,counterPage,0);
         byte[] counterMem = Arrays.copyOfRange(counterPage, 0, 2);
         byte[] counterFlipped = {counterMem[1], counterMem[0]};
         ByteBuffer wrapped = ByteBuffer.wrap(counterFlipped);
@@ -246,9 +256,9 @@ public class Ticket {
 
         byte[] ticketInfo = new byte[8];
         if (counterVal % 2 == 0)
-            res = utils.readPages(7, 2, ticketInfo, 0);
+            utils.readPages(7, 2, ticketInfo, 0);
         else
-            res = utils.readPages(5, 2, ticketInfo, 0);
+            utils.readPages(5, 2, ticketInfo, 0);
 
 
         byte[] ticket = Arrays.copyOfRange(ticketInfo,0, 4);
@@ -271,13 +281,14 @@ public class Ticket {
         wrapped = ByteBuffer.wrap(expiryDate);
         int currentExpiryDate = wrapped.getShort();
         Calendar dateNow = new GregorianCalendar();
+        Calendar savedDate = new GregorianCalendar();
 
         if (currentExpiryDate == 0) {
             expiryDate = generateDate(dateNow);
         }
         else {
-            Calendar savedDate = new GregorianCalendar();
-            savedDate.set(expiryDate[0] + 2000, expiryDate[1], expiryDate[2], 0, 0);
+
+            savedDate.set(expiryDate[0] + 2000, expiryDate[1], expiryDate[2], 0, 0, 0);
 
             if (dateNow.compareTo(savedDate) > 0) {
                 infoToShow = "Ticket has expired, please purchase a new ticket";
@@ -312,8 +323,12 @@ public class Ticket {
         }
 
         byte[] incCounter = {0x01, 0, 0, 0};
-        utils.writePages(incCounter, 0, 41, 1);
-        infoToShow = "Ticket valid! You now have " + Integer.toString(currentNumOfRides) + " ride(s) left";
+        res = utils.writePages(incCounter, 0, 41, 1);
+        if (!res) {
+            infoToShow = "You removed the card too fast, please re-tap your card.";
+            return false;
+        }
+        infoToShow =  "Remaining ride(s): " + Integer.toString(currentNumOfRides) + "\nValid until: " + getDate(savedDate) + " 23:59";
         return true;
     }
 }
