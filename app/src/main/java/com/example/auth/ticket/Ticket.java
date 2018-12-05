@@ -1,6 +1,8 @@
 package com.example.auth.ticket;
 
 
+import android.util.Log;
+
 import com.example.auth.app.ulctools.Commands;
 import com.example.auth.app.ulctools.Utilities;
 
@@ -23,10 +25,12 @@ import java.util.Locale;
 public class Ticket {
 
     private static byte[] defaultAuthenticationKey = "BREAKMEIFYOUCAN!".getBytes();// 16-byte key
+    private static byte[] custom_auth_key="netsec12".getBytes();
 
     /** TODO: Change these according to your design. Diversify the keys. */
     private static byte[] authenticationKey = defaultAuthenticationKey;// 16-byte key
     private static byte[] hmacKey = "0123456789ABCDEF".getBytes(); // min 16-byte key
+
 
     public static byte[] data = new byte[192];
 
@@ -119,7 +123,11 @@ public class Ticket {
         ByteBuffer wrapped = ByteBuffer.wrap(expiryDate);
         int currentExpiryDate = wrapped.getShort();
 
-        if (currentNumOfRides == 0)
+        if (currentNumOfRides > 95) {
+            return null;
+        }
+
+        else if (currentNumOfRides == 0)
             return freshTicket;
 
         else if (currentExpiryDate == 0) {
@@ -148,6 +156,40 @@ public class Ticket {
         utils.writePages(authValues, 0, 42, 2);
     }
 
+    private void writeVersionTagValues() {
+        byte[] version_tag = new byte[4];
+        version_tag[1]=0x01;
+        version_tag[3]=0x01;
+        utils.writePages(version_tag, 0, 4, 1);
+
+    }
+    private byte[] diversifyAuthKey(byte[] uid, boolean write) {
+
+        byte[] trim_uid = Arrays.copyOfRange(uid,0,8);
+        byte[] reversed_trim_uid = reverse_byte_array(trim_uid);
+        byte[] reversed_auth_key = reverse_byte_array(custom_auth_key);
+        byte[] authentication_key = utils.concatArrays(reversed_auth_key,reversed_trim_uid);
+        if (write) {
+            utils.writePages(authentication_key, 0, 44, 4);
+        }
+        return authentication_key;
+
+    }
+
+
+    private byte[] reverse_byte_array(byte[] toBeReversed){
+        byte[] reversedArray = new byte[toBeReversed.length];
+        System.arraycopy(toBeReversed, 0, reversedArray, 0, reversedArray.length);
+        for(int i = 0; i < reversedArray.length / 2; i++)
+        {
+            byte temp = reversedArray[i];
+            reversedArray[i] = reversedArray[reversedArray.length - i - 1];
+            reversedArray[reversedArray.length - i - 1] = temp;
+        }
+        return reversedArray;
+    }
+
+
     private String getDate(Calendar cal) {
         DateFormat fmt = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
         return fmt.format(cal.getTime());
@@ -159,26 +201,66 @@ public class Ticket {
      */
     public boolean issue(int daysValid, int uses) throws GeneralSecurityException {
         boolean res;
+
         byte[] uid = new byte[12];
         boolean uidRead = utils.readPages(0,3, uid,0);
-
-        //TODO: HANDLE AUTHENTICATION
-        byte[] authDiversifiedKey = generateDiversifiedKey(uid, true);
-        byte[] hmacDiversifiedKey = generateDiversifiedKey(uid, false);
 
         if(!uidRead){
             Utilities.log("Reading uid failed in issue()", true);
             infoToShow = "Reading uid failed";
             return false;
         }
-        // Authenticate
-        res = utils.authenticate(authenticationKey);
-        if (!res) {
-            Utilities.log("Authentication failed in issue()", true);
-            infoToShow = "Authentication failed";
+
+
+
+
+        byte[] version_tag = new byte[4];
+        res = utils.readPages(4,1,version_tag,0);
+
+        if(!res){
+            Utilities.log("Reading Version and Tag failed()",true);
+            infoToShow = "Reading Version and Tag failed";
             return false;
         }
-        writeAuthValues();
+        byte[] untouched_card = new byte[]{0x00,0x00,0x00,0x00};
+
+
+        if (Arrays.equals(version_tag,untouched_card)){
+            // Authenticate
+            Log.d("Version_tag", "version_tag value is equal to 0");
+            res = utils.authenticate(authenticationKey);
+            if (!res) {
+                Utilities.log("Authentication failed in issue()", true);
+                infoToShow = "Authentication failed";
+                return false;
+            }
+
+            writeAuthValues();
+            writeVersionTagValues();
+            diversifyAuthKey(uid, true);
+
+        }
+        else if (Arrays.equals(version_tag,new byte[]{0,0x01,0,0x01})){
+
+            infoToShow="Version and tag matches our values. Trying diversified key";
+
+            byte[] authDiversifiedKey = diversifyAuthKey(uid, false);
+            res = utils.authenticate(authDiversifiedKey);
+            if (!res) {
+                Utilities.log("Authentication failed in issue()", true);
+                infoToShow = "Authentication failed";
+                return false;
+            }
+
+        }
+        else{
+            Utilities.log("Unknown Version and Tag",true);
+            infoToShow="Unknown Version and Tag";
+            return false;
+        }
+
+
+        byte[] hmacDiversifiedKey = generateDiversifiedKey(uid, false);
 
         byte[] counterPage = new byte[4];
         boolean counterRead = utils.readPages(41,1,counterPage,0);
@@ -196,6 +278,10 @@ public class Ticket {
         ++counterFlipped[1];
 
         byte[] ticket = generateNewTicket(counterVal);
+        if (ticket == null) {
+            infoToShow = "Sorry you cannot purchase more than 100 tickets at a time.";
+            return false;
+        }
         byte[] dataToMac = utils.concatArrays(ticket, counterFlipped);
         macAlgorithm.setKey(hmacDiversifiedKey);
         byte[] ticketHmac = macAlgorithm.generateMac(dataToMac);
@@ -225,6 +311,8 @@ public class Ticket {
         return true;
     }
 
+
+
     /**
      * Use ticket once
      *
@@ -232,8 +320,11 @@ public class Ticket {
      */
     public boolean use() throws GeneralSecurityException {
         boolean res;
-        // Authenticate
-        res = utils.authenticate(authenticationKey);
+
+        byte[] uid = new byte[12];
+        utils.readPages(0,3, uid,0);
+        byte[] diversifiedAuthKey = diversifyAuthKey(uid, false);
+        res = utils.authenticate(diversifiedAuthKey);
         if (!res) {
             Utilities.log("Authentication failed in use()", true);
             infoToShow = "Authentication failed";
@@ -241,10 +332,8 @@ public class Ticket {
         }
 
 
-        byte[] uid = new byte[12];
-        boolean uidRead = utils.readPages(0,3, uid,0);
         byte[] hmacDiversifiedKey = generateDiversifiedKey(uid, false);
-        // Example of reading:
+
 
         byte[] counterPage = new byte[4];
         utils.readPages(41,1,counterPage,0);
@@ -276,7 +365,10 @@ public class Ticket {
             infoToShow = "No rides available, please purchase new ones";
             return false;
         }
-
+        else if (currentNumOfRides > 100) {
+            infoToShow = "Suspicious number of tickets detected";
+            return false;
+        }
         byte[] expiryDate = Arrays.copyOfRange(ticketInfo, 1, 4);
         wrapped = ByteBuffer.wrap(expiryDate);
         int currentExpiryDate = wrapped.getShort();
@@ -285,11 +377,11 @@ public class Ticket {
 
         if (currentExpiryDate == 0) {
             expiryDate = generateDate(dateNow);
+            savedDate.set(expiryDate[0] + 2000, expiryDate[1], expiryDate[2], 0, 0, 0);
         }
         else {
 
             savedDate.set(expiryDate[0] + 2000, expiryDate[1], expiryDate[2], 0, 0, 0);
-
             if (dateNow.compareTo(savedDate) > 0) {
                 infoToShow = "Ticket has expired, please purchase a new ticket";
                 return false;
