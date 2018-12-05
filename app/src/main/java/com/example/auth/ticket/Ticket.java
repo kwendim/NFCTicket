@@ -77,15 +77,10 @@ public class Ticket {
     }
 
 
-    private byte[] generateDiversifiedKey(byte[] uid, boolean useAuthKey) {
+    private byte[] diversifyMacKey(byte[] uid) {
         try {
             ByteArrayOutputStream diversifiedKeyStream = new ByteArrayOutputStream();
-            if (useAuthKey) {
-                diversifiedKeyStream.write(authenticationKey);
-            }
-            else {
-                diversifiedKeyStream.write(hmacKey);
-            }
+            diversifiedKeyStream.write(hmacKey);
             diversifiedKeyStream.write(Arrays.copyOfRange(uid, 0, 3));
             diversifiedKeyStream.write(Arrays.copyOfRange(uid, 4, 8));
             return diversifiedKeyStream.toByteArray();
@@ -238,6 +233,8 @@ public class Ticket {
             writeAuthValues();
             writeVersionTagValues();
             diversifyAuthKey(uid, true);
+            byte[] initCounter = {0, 0, 0, 0};
+            utils.writePages(initCounter, 0, 41, 1);
 
         }
         else if (Arrays.equals(version_tag,new byte[]{0,0x01,0,0x01})){
@@ -260,7 +257,7 @@ public class Ticket {
         }
 
 
-        byte[] hmacDiversifiedKey = generateDiversifiedKey(uid, false);
+        byte[] hmacDiversifiedKey = diversifyMacKey(uid);
 
         byte[] counterPage = new byte[4];
         boolean counterRead = utils.readPages(41,1,counterPage,0);
@@ -320,6 +317,21 @@ public class Ticket {
      */
     public boolean use() throws GeneralSecurityException {
         boolean res;
+        byte[] version_tag = new byte[4];
+        res = utils.readPages(4,1,version_tag,0);
+
+        if(!res){
+            Utilities.log("Reading Version and Tag failed()",true);
+            infoToShow = "Reading Version and Tag failed";
+            return false;
+        }
+        byte[] untouched_card = new byte[]{0x00,0x00,0x00,0x00};
+
+
+        if (Arrays.equals(version_tag,untouched_card)) {
+            infoToShow = "This card has no tickets, please issue tickets first";
+            return false;
+        }
 
         byte[] uid = new byte[12];
         utils.readPages(0,3, uid,0);
@@ -332,7 +344,7 @@ public class Ticket {
         }
 
 
-        byte[] hmacDiversifiedKey = generateDiversifiedKey(uid, false);
+        byte[] hmacDiversifiedKey = diversifyMacKey(uid);
 
 
         byte[] counterPage = new byte[4];
