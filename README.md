@@ -187,7 +187,7 @@ The validation algorithm needs the data to be duplicated (two pages each) to sol
 
 ## Key management
 
-The authentication key is stored on the reader using the Android [keystore](https://developer.android.com/training/articles/keystore) system. The reader sets the key of the card at issue time. The key is formed of a generated key and the UID of the NFC card.
+The authentication key is stored on the reader which sets the key of the card at issue time. The key is formed of a generated key and the UID of the NFC card.
 
 The HMAC key is stored only on the reader using the same method as the authentication key and the same format (a different generated key and the UID of the NFC card).
 
@@ -234,7 +234,6 @@ The following aspects are taken into consideration:
 
 ## Final notes
 
-The decision of using Android [keystore](https://developer.android.com/training/articles/keystore) system is not final as we have not yet tested this functionality before.It might be altered later on during the implementation if we find a better alternative. In addition, based on the time we have, we will try to implement other features that enhance security or improve user experience when diving deeper into the implementation. The documentation will be updated accordingly. 
-
-
 In case the user wants to add rides while he still has valid tickets, we have two approaches but have not decided which would be best. The first approach is to prevent the user from buying new rides while he still has valid rides on his card; but this is not the best user experience. The second approach is to add more logic to the issuing part which will be as follows: Read the ticket data from the user memory to check if he has any valid rides, if not proceed with the logic mentioned in the implementation. If yes, we will add the number of new rides to the number of currently present rides then write the updated ticket to the user memory.
+
+Edit: Second approach has been chosen and implemented.
