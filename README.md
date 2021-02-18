@@ -1,18 +1,3 @@
-###### CS-E4300 Network security, 2018
-
-### Getting started
-
-1. Clone the project repository
-2. Create a __private__ repository for your group
-3. Add all group members, as well as the following users (as reporters):
-    * Tuomas Aura (@aura)
-    * Aleksi Peltonen (@peltona4)
-4. Replace this document with your project report. The structure of the report is provided below.
-
-
-***
-
-
 # Project Report: Ticket Application by Group 25
 
 Kidus Mammo, Mohammad Elhariry, Sonika Ujwal
